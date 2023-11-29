@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        label ("aws-deploy")
+        label ("Dev")
             }
     options {
         buildDiscarder(logRotator(numToKeepStr: '5'))
