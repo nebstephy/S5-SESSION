@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        label ("Dev")
+        label ("aws-deploy")
             }
     options {
         buildDiscarder(logRotator(numToKeepStr: '5'))
@@ -20,7 +20,7 @@ pipeline {
             steps {
                 sh '''
             id
-            cd weatherapp/auth
+            cd weatherapp/auth/src/main
             go build 
             cd -
             ls -la
