@@ -20,7 +20,7 @@ pipeline {
             steps {
                 sh '''
             id
-            cd weatherapp/auth
+            cd weatherapp/auth/src/main
             go build 
             cd -
             ls -la
