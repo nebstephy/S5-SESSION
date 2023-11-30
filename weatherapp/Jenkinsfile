@@ -1,77 +1,73 @@
 pipeline {
     agent {
         label ("Dev")
-            }
+    }
     options {
         buildDiscarder(logRotator(numToKeepStr: '5'))
         disableConcurrentBuilds()
-        timeout (time: 60, unit: 'MINUTES')
+        timeout(time: 60, unit: 'MINUTES')
         timestamps()
-      }
+    }
     stages {
-
         stage('Test auth') {
-	     agent {
-            docker {
-              image 'golang:alpine'
-              args '-u root:root'
+            agent {
+                docker {
+                    image 'golang:alpine'
+                    args '-u root:root'
+                }
             }
-           }
             steps {
                 sh '''
-            id
-            cd weatherapp/auth/src/main
-            go build 
-            cd -
-            ls -la
+                    id
+                    cd weatherapp/auth/src/main
+                    go build 
+                    cd -
+                    ls -la
                 '''
             }
         }
 
-
         stage('Test UI') {
-	     agent {
-            docker {
-              image 'node:17'
-              args '-u root:root'
+            agent {
+                docker {
+                    image 'node:17'
+                    args '-u root:root'
+                }
             }
-           }
             steps {
                 sh '''
-            cd weatherapp/UI
-            npm run
+                    cd weatherapp/UI
+                    npm run
                 '''
             }
         }
 
         stage('Test weather') {
-	     agent {
-            docker {
-              image 'python:3.8-slim-buster'
-              args '-u root:root'
+            agent {
+                docker {
+                    image 'python:3.8-slim-buster'
+                    args '-u root:root'
+                }
             }
-           }
             steps {
                 sh '''
-            cd weatherapp/weather
-            pip3 install -r requirements.txt
+                    cd weatherapp/weather
+                    pip3 install -r requirements.txt
                 '''
             }
         }
 
-        stages {
-         stage('SonarQube analysis') {
+        stage('SonarQube analysis') {
             agent {
                 docker {
-                  image 'sonarsource/sonar-scanner-cli:4.7.0'
+                    image 'sonarsource/sonar-scanner-cli:4.7.0'
                 }
-               }
-               environment {
-        CI = 'true'
-        //  scannerHome = tool 'Sonar'
-        scannerHome='/opt/sonar-scanner'
-    }
-            steps{
+            }
+            environment {
+                CI = 'true'
+                scannerHome='/opt/sonar-scanner'
+            }
+            steps {
                 withSonarQubeEnv('SonarQube') {
                     sh "${scannerHome}/bin/sonar-scanner"
                 }
@@ -81,18 +77,10 @@ pipeline {
         stage('Hello') {
             steps {
                 sh '''
-                ls 
-                pwd
+                    ls 
+                    pwd
                 '''
             }
         }
     }
-
-    }
-
-
-
-
-
-
 }
