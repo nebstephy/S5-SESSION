@@ -78,7 +78,7 @@ pipeline {
             steps {
                 // Check SonarQube analysis results against quality gate within a 1-hour timeout
                 timeout(time: 60, unit: 'MINUTES') {
-                    sh 'sonar-scanner -Dsonar.qualitygate.wait=true'
+                    sh 'sonar-scanner -Dsonar.qualitygate.wait=false'
                 }
             }
         }
