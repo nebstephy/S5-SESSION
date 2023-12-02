@@ -2,6 +2,10 @@ pipeline {
     agent {
         label("Dev")
     }
+    environment {
+		DOCKERHUB_CREDENTIALS=credentials('DockerHub')
+	}
+    
     options {
         buildDiscarder(logRotator(numToKeepStr: '5'))
         disableConcurrentBuilds()
