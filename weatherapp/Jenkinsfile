@@ -3,8 +3,8 @@ pipeline {
         label("Dev")
     }
     environment {
-		DOCKERHUB_CREDENTIALS=credentials('DockerHub')
-	}
+        DOCKERHUB_CREDENTIALS = credentials('DockerHub')
+    }
     
     options {
         buildDiscarder(logRotator(numToKeepStr: '5'))
@@ -12,6 +12,7 @@ pipeline {
         timeout(time: 60, unit: 'MINUTES')
         timestamps()
     }
+    
     stages {
         stage('Test auth') {
             agent {
@@ -96,9 +97,6 @@ pipeline {
                 }
             }
         }
-
-
-
 
         stage('Build auth') {
             steps {
