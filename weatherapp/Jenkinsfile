@@ -82,9 +82,14 @@ pipeline {
             }
         }
 
-        stage('Login') {
+        stage('Login to Docker Registry') {
             steps {
-                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
+                    script {
+                        def dockerHubCredentials = "${DOCKERHUB_USERNAME}:${DOCKERHUB_PASSWORD}"
+                        sh "echo ${dockerHubCredentials} | docker login --username ${DOCKERHUB_USERNAME} --password-stdin"
+                    }
+                }
             }
         }
 
