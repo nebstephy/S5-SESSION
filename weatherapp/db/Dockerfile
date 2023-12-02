@@ -1,1 +1,2 @@
-FROM devopseasylearning/weatherapp-db:v0.0.1
+FROM mysql
+
