@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        label ("Dev")
+        label("Dev")
     }
     options {
         buildDiscarder(logRotator(numToKeepStr: '5'))
@@ -65,7 +65,7 @@ pipeline {
             }
             environment {
                 CI = 'true'
-                scannerHome='/opt/sonar-scanner'
+                scannerHome = '/opt/sonar-scanner'
             }
             steps {
                 withSonarQubeEnv('SonarQube') {
@@ -77,10 +77,142 @@ pipeline {
         stage("Quality Gate") {
             steps {
                 timeout(time: 1, unit: 'HOURS') {
-                waitForQualityGate abortPipeline: true }
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
 
+        stage('Login') {
+            steps {
+                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+            }
+        }
 
+        stage('Build auth') {
+            steps {
+                sh '''
+                    cd $WORKSPACE/weatherapp/auth
+                    docker build -t nebstephy/weatherapp-auth:${BUILD_NUMBER} .
+                '''
+            }
+        }
+
+        stage('Push auth') {
+            when {
+                expression {
+                    env.GIT_BRANCH == 'origin/develop'
+                }
+            }
+            steps {
+                sh '''
+                    docker push nebstephy/weatherapp-auth:${BUILD_NUMBER}
+                '''
+            }
+        }
+
+        stage('Build UI') {
+            steps {
+                sh '''
+                    cd $WORKSPACE/weatherapp/UI
+                    docker build -t nebstephy/weatherapp-ui:${BUILD_NUMBER} .
+                '''
+            }
+        }
+
+        stage('Push UI') {
+            when {
+                expression {
+                    env.GIT_BRANCH == 'origin/develop'
+                }
+            }
+            steps {
+                sh '''
+                    docker push nebstephy/weatherapp-ui:${BUILD_NUMBER}
+                '''
+            }
+        }
+
+        stage('Build Weather') {
+            steps {
+                sh '''
+                    cd $WORKSPACE/weatherapp/weather
+                    docker build -t nebstephy/weatherapp-weather:${BUILD_NUMBER} .
+                '''
+            }
+        }
+
+        stage('Push weather') {
+            when {
+                expression {
+                    env.GIT_BRANCH == 'origin/develop'
+                }
+            }
+            steps {
+                sh '''
+                    docker push nebstephy/weatherapp-weather:${BUILD_NUMBER}
+                '''
+            }
+        }
+
+        stage('Build Redis') {
+            steps {
+                sh '''
+                    cd $WORKSPACE/weatherapp/redis
+                    docker build -t nebstephy/weatherapp-redis:${BUILD_NUMBER} .
+                '''
+            }
+        }
+
+        stage('Push redis') {
+            when {
+                expression {
+                    env.GIT_BRANCH == 'origin/develop'
+                }
+            }
+            steps {
+                sh '''
+                    docker push nebstephy/weatherapp-redis:${BUILD_NUMBER}
+                '''
+            }
+        }
+
+        stage('Build db') {
+            steps {
+                sh '''
+                    cd $WORKSPACE/weatherapp/db
+                    docker build -t nebstephy/weatherapp-db:${BUILD_NUMBER} .
+                '''
+            }
+        }
+
+        stage('Push db') {
+            when {
+                expression {
+                    env.GIT_BRANCH == 'origin/develop'
+                }
+            }
+            steps {
+                sh '''
+                    docker push nebstephy/weatherapp-db:${BUILD_NUMBER}
+                '''
+            }
+        }
+
+        stage('warning') {
+            agent {
+                label "Dev"
+            }
+            when {
+                expression {
+                    env.GIT_BRANCH == 'origin/develop'
+                }
+            }
+            steps {
+                script {
+                    notifyUpgrade(currentBuild.currentResult, "WARNING")
+                    sleep(time: env.WARNTIME, unit: "MINUTES")
+                }
+            }
+        }
     }
 }
