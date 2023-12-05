@@ -214,7 +214,7 @@ pipeline {
 
         stage('warning') {
             agent {
-                label "Jenkins-Agent-Dev"
+                label "Dev"
             }
             when {
                 expression {
@@ -231,7 +231,7 @@ pipeline {
 
         stage('Generate-compose') {
             agent { 
-                label "Jenkins-Agent-Dev"
+                label "Dev"
             }
             when{ 
                 expression {
@@ -337,7 +337,7 @@ pipeline {
 
         stage('Deploy') {
             agent { 
-                label "Jenkins-Agent-Dev"
+                label "Dev"
             }
             when{ 
                 expression {
@@ -355,7 +355,7 @@ pipeline {
 
         stage('checking deployment') {
             agent { 
-                label "Jenkins-Agent-Dev"
+                label "Dev"
             }
             when{ 
                 expression {
@@ -371,7 +371,7 @@ pipeline {
 
         stage('checking website') {
             agent { 
-                label "Jenkins-Agent-Dev"
+                label "Dev"
             }
             when{ 
                 expression {
