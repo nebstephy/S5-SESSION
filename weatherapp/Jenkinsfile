@@ -254,7 +254,7 @@ pipeline {
                     container_name: weatherapp-db
                     image: nebstephy/weatherapp-db:${BUILD_NUMBER}
                     environment:
-                      MYSQL_ROOT_PASSWORD: \${WEATHERAPP_MYSQL_ROOT_PASSWORD}
+                      MYSQL_ROOT_PASSWORD: ${WEATHERAPP_MYSQL_ROOT_PASSWORD}
                     volumes:
                       - db-data:/var/lib/mysql
                     networks:   
@@ -268,7 +268,7 @@ pipeline {
                       - weatherapp
                     environment:
                       REDIS_USER: redis
-                      REDIS_PASSWORD: \${WEATHERAPP_REDIS_PASSWORD}
+                      REDIS_PASSWORD: ${WEATHERAPP_REDIS_PASSWORD}
                     volumes:
                       - redis-data:/data
                     restart: always
@@ -279,7 +279,7 @@ pipeline {
                     expose:
                       - 5000
                     environment:
-                      APIKEY: \${WEATHERAPP_APIKEY}
+                      APIKEY: ${WEATHERAPP_APIKEY}
                     networks:
                       - weatherapp
                     restart: always
@@ -292,9 +292,9 @@ pipeline {
                     image: nebstephy/weatherapp-auth:${BUILD_NUMBER}
                     environment:
                       DB_HOST: db
-                      DB_PASSWORD: \${WEATHERAPP_DB_PASSWORD}
+                      DB_PASSWORD: ${WEATHERAPP_DB_PASSWORD}
                     expose:
-                      - 8081
+                      - 8080
                     networks:
                       - weatherapp
                     restart: always
@@ -306,11 +306,11 @@ pipeline {
                     image: nebstephy/weatherapp-ui:${BUILD_NUMBER}
                     environment:
                       AUTH_HOST: auth
-                      AUTH_PORT: 8081
+                      AUTH_PORT: 8080
                       WEATHER_HOST: weather
                       WEATHER_PORT: 5000
                       REDIS_USER: redis
-                      REDIS_PASSWORD: \${WEATHERAPP_REDIS_PASSWORD}
+                      REDIS_PASSWORD: ${WEATHERAPP_REDIS_PASSWORD}
                     expose:
                       - 3000
                     ports:
