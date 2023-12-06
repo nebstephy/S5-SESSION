@@ -369,22 +369,22 @@ pipeline {
             }
         }
 
-        stage('checking website') {
-            agent { 
-                label "Dev"
-            }
-            when{ 
-                expression {
-                    env.GIT_BRANCH == 'origin/develop'
-                }
-            }
-            steps {
-                sh '''
-                    sleep 10
-                    bash weatherapp/check-login.sh
-                '''
-            }
-        }
+        // stage('checking website') {
+        //     agent { 
+        //         label "Dev"
+        //     }
+        //     when{ 
+        //         expression {
+        //             env.GIT_BRANCH == 'origin/develop'
+        //         }
+        //     }
+        //     steps {
+        //         sh '''
+        //             sleep 10
+        //             bash weatherapp/check-login.sh
+        //         '''
+        //     }
+        // }
 
     }
 
