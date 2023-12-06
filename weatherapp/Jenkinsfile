@@ -87,18 +87,12 @@ pipeline {
             }
         }
 
-        stage('Login to Docker Registry') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'DockerHub', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
-                    script {
-                        def dockerHubUsername = env.DOCKERHUB_USERNAME
-                        def dockerHubPassword = env.DOCKERHUB_PASSWORD
+        stage('Login') {
 
-                        sh "echo \$DOCKERHUB_PASSWORD | docker login --username \$DOCKERHUB_USERNAME --password-stdin"
-                    }
-                }
-            }
-        }
+			steps {
+				sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+			}
+		}
 
         stage('Build auth') {
             steps {
