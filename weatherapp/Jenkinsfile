@@ -79,13 +79,13 @@ pipeline {
             }
         }
 
-        // stage("Quality Gate") {
-        //     steps {
-        //         timeout(time: 1, unit: 'HOURS') {
-        //             waitForQualityGate abortPipeline: true
-        //         }
-        //     }
-        // }
+        stage("Quality Gate") {
+            steps {
+                timeout(time: 1, unit: 'HOURS') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
 
         stage('Login to Docker Registry') {
             steps {
@@ -212,31 +212,28 @@ pipeline {
 
         // Add more build and push stages for other services as needed...
 
-        // stage('warning') {
-        //     agent {
-        //         label "Dev"
-        //     }
-        //     when {
-        //         expression {
-        //             env.GIT_BRANCH == 'origin/develop'
-        //         }
-        //     }
-        //     steps {
-        //         script {
-        //             notifyUpgrade(currentBuild.currentResult, "WARNING")
-        //             sleep(time: env.WARNTIME, unit: "MINUTES")
-        //         }
-        //     }
-        // }
-    
-    stages {
-        // ... (Previous stages remain the same)
-        
+        stage('warning') {
+            agent {
+                label "Jenkins-Agent-Dev"
+            }
+            when {
+                expression {
+                    env.GIT_BRANCH == 'origin/develop'
+                }
+            }
+            steps {
+                script {
+                    notifyUpgrade(currentBuild.currentResult, "WARNING")
+                    sleep(time: env.WARNTIME, unit: "MINUTES")
+                }
+            }
+        }
+
         stage('Generate-compose') {
             agent { 
-                label "Dev"
+                label "Jenkins-Agent-Dev"
             }
-            when { 
+            when{ 
                 expression {
                     env.GIT_BRANCH == 'origin/develop'
                 }
@@ -264,7 +261,7 @@ pipeline {
                                 networks:   
                                   - weatherapp
                                 restart: always
-                                
+
                               redis:
                                 container_name: weatherapp-redis
                                 image: nebstephy/weatherapp-redis:${BUILD_NUMBER}
@@ -340,7 +337,7 @@ pipeline {
 
         stage('Deploy') {
             agent { 
-                label "Dev"
+                label "Jenkins-Agent-Dev"
             }
             when{ 
                 expression {
@@ -358,7 +355,7 @@ pipeline {
 
         stage('checking deployment') {
             agent { 
-                label "Dev"
+                label "Jenkins-Agent-Dev"
             }
             when{ 
                 expression {
@@ -372,22 +369,22 @@ pipeline {
             }
         }
 
-        // stage('checking website') {
-        //     agent { 
-        //         label "Dev"
-        //     }
-        //     when{ 
-        //         expression {
-        //             env.GIT_BRANCH == 'origin/develop'
-        //         }
-        //     }
-        //     steps {
-        //         sh '''
-        //             sleep 10
-        //             bash weatherapp/check-login.sh
-        //         '''
-        //     }
-        // }
+        stage('checking website') {
+            agent { 
+                label "Jenkins-Agent-Dev"
+            }
+            when{ 
+                expression {
+                    env.GIT_BRANCH == 'origin/develop'
+                }
+            }
+            steps {
+                sh '''
+                    sleep 10
+                    bash weatherapp/check-login.sh
+                '''
+            }
+        }
 
     }
 
