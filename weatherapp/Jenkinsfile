@@ -228,12 +228,15 @@ pipeline {
         //         }
         //     }
         // }
-
+    
+    stages {
+        // ... (Previous stages remain the same)
+        
         stage('Generate-compose') {
             agent { 
                 label "Dev"
             }
-            when{ 
+            when { 
                 expression {
                     env.GIT_BRANCH == 'origin/develop'
                 }
@@ -261,7 +264,7 @@ pipeline {
                                 networks:   
                                   - weatherapp
                                 restart: always
-
+                                
                               redis:
                                 container_name: weatherapp-redis
                                 image: nebstephy/weatherapp-redis:${BUILD_NUMBER}
