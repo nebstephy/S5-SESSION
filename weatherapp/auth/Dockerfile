@@ -3,7 +3,7 @@ FROM golang:alpine AS builder
 RUN apk add git
 WORKDIR /go/src/app
 RUN git clone https://github.com/abohmeed/weatherapp.git
-WORKDIR /go/src/app/S5-SESSION/weatherapp/auth/src/main
+WORKDIR /go/src/app/weatherapp/auth/src/main
 RUN go build -o /go/bin/app -v ./...
 
 
