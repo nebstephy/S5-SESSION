@@ -247,9 +247,8 @@ pipeline {
                         string(credentialsId: 'WEATHERAPP_APIKEY', variable: 'WEATHERAPP_APIKEY')
                     ]) {
 
-                        sh '''
-                            cat <<EOF > docker-compose.yml
-                            version: '3.5'
+                        sh """
+                            echo 'version: "3.5"
                             services:
                               db:
                                 container_name: weatherapp-db
@@ -328,12 +327,13 @@ pipeline {
                             volumes:
                               db-data:
                               redis-data:
-                            EOF
-                        '''
+                            ' > docker-compose.yaml
+                            """
+                        }
                     }
                 }
             }
-        }
+        
 
         stage('Deploy') {
             agent { 
