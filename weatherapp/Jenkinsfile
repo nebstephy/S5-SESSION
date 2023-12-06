@@ -3,8 +3,7 @@ pipeline {
         label("Dev")
     }
     environment {
-        DOCKERHUB_CREDENTIALS_USR = credentials('DOCKERHUB_USERNAME')
-        DOCKERHUB_CREDENTIALS_PSW = credentials('DOCKERHUB_PASSWORD')
+        DOCKERHUB_CREDENTIALS = credentials('DockerHub')
     }
     
     options {
@@ -88,30 +87,312 @@ pipeline {
             }
         }
 
-        stage('Build and Push Auth Image') {
+        stage('Login to Docker Registry') {
             steps {
-                withCredentials([string(credentialsId: 'DOCKERHUB_CREDENTIALS_USR', variable: 'DOCKERHUB_USERNAME'),
-                                 string(credentialsId: 'DOCKERHUB_CREDENTIALS_PSW', variable: 'DOCKERHUB_PASSWORD')]) {
-                    dir('weatherapp/auth/src/main') {
-                        sh "docker build -t nebstephy/weatherapp-auth ."
-                        sh "docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_PASSWORD}"
-                        sh "docker push nebstephy/weatherapp-auth"
+                withCredentials([usernamePassword(credentialsId: 'DockerHub', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
+                    script {
+                        def dockerHubUsername = env.DOCKERHUB_USERNAME
+                        def dockerHubPassword = env.DOCKERHUB_PASSWORD
+
+                        sh "echo \$DOCKERHUB_PASSWORD | docker login --username \$DOCKERHUB_USERNAME --password-stdin"
                     }
                 }
             }
         }
 
-        stage('Build and Push UI Image') {
+        stage('Build auth') {
             steps {
-                withCredentials([string(credentialsId: 'DOCKERHUB_CREDENTIALS_USR', variable: 'DOCKERHUB_USERNAME'),
-                                 string(credentialsId: 'DOCKERHUB_CREDENTIALS_PSW', variable: 'DOCKERHUB_PASSWORD')]) {
-                    dir('weatherapp/UI') {
-                        sh "docker build -t nebstephy/weatherapp-ui ."
-                        sh "docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_PASSWORD}"
-                        sh "docker push nebstephy/weatherapp-ui"
-                    }
+                sh '''
+                    cd $WORKSPACE/weatherapp/auth
+                    docker build -t nebstephy/weatherapp-auth:${BUILD_NUMBER} .
+                '''
+            }
+        }
+
+        stage('Push auth') {
+            when {
+                expression {
+                    env.GIT_BRANCH == 'origin/develop'
                 }
+            }
+            steps {
+                sh '''
+                    docker push nebstephy/weatherapp-auth:${BUILD_NUMBER}
+                '''
+            }
+        }
+
+        stage('Build UI') {
+            steps {
+                sh '''
+                    cd $WORKSPACE/weatherapp/UI
+                    docker build -t nebstephy/weatherapp-ui:${BUILD_NUMBER} .
+                '''
+            }
+        }
+
+        stage('Push UI') {
+            when {
+                expression {
+                    env.GIT_BRANCH == 'origin/develop'
+                }
+            }
+            steps {
+                sh '''
+                    docker push nebstephy/weatherapp-ui:${BUILD_NUMBER}
+                '''
+            }
+        }
+
+        stage('Build Weather') {
+            steps {
+                sh '''
+                    cd $WORKSPACE/weatherapp/weather
+                    docker build -t nebstephy/weatherapp-weather:${BUILD_NUMBER} .
+                '''
+            }
+        }
+
+        stage('Push weather') {
+            when {
+                expression {
+                    env.GIT_BRANCH == 'origin/develop'
+                }
+            }
+            steps {
+                sh '''
+                    docker push nebstephy/weatherapp-weather:${BUILD_NUMBER}
+                '''
+            }
+        }
+
+        stage('Build Redis') {
+            steps {
+                sh '''
+                    cd $WORKSPACE/weatherapp/redis
+                    docker build -t nebstephy/weatherapp-redis:${BUILD_NUMBER} .
+                '''
+            }
+        }
+
+        stage('Push redis') {
+            when {
+                expression {
+                    env.GIT_BRANCH == 'origin/develop'
+                }
+            }
+            steps {
+                sh '''
+                    docker push nebstephy/weatherapp-redis:${BUILD_NUMBER}
+                '''
+            }
+        }
+
+        stage('Build db') {
+            steps {
+                sh '''
+                    cd $WORKSPACE/weatherapp/db
+                    docker build -t nebstephy/weatherapp-db:${BUILD_NUMBER} .
+                '''
+            }
+        }
+
+        stage('Push db') {
+            when {
+                expression {
+                    env.GIT_BRANCH == 'origin/develop'
+                }
+            }
+            steps {
+                sh '''
+                    docker push nebstephy/weatherapp-db:${BUILD_NUMBER}
+                '''
+            }
+        }
+
+        // Add more build and push stages for other services as needed...
+
+        // stage('warning') {
+        //     agent {
+        //         label "Dev"
+        //     }
+        //     when {
+        //         expression {
+        //             env.GIT_BRANCH == 'origin/develop'
+        //         }
+        //     }
+        //     steps {
+        //         script {
+        //             notifyUpgrade(currentBuild.currentResult, "WARNING")
+        //             sleep(time: env.WARNTIME, unit: "MINUTES")
+        //         }
+        //     }
+        // }
+
+       stage('Generate-compose') {
+    agent {
+        label "Dev"
+    }
+    when {
+        expression {
+            env.GIT_BRANCH == 'origin/develop'
+        }
+    }
+    steps {
+        script {
+            withCredentials([
+                string(credentialsId: 'WEATHERAPP_MYSQL_ROOT_PASSWORD', variable: 'WEATHERAPP_MYSQL_ROOT_PASSWORD'),
+                string(credentialsId: 'WEATHERAPP_REDIS_PASSWORD', variable: 'WEATHERAPP_REDIS_PASSWORD'),
+                string(credentialsId: 'WEATHERAPP_DB_PASSWORD', variable: 'WEATHERAPP_DB_PASSWORD'),
+                string(credentialsId: 'WEATHERAPP_APIKEY', variable: 'WEATHERAPP_APIKEY')
+            ]) {
+                sh """
+                echo '''
+                version: "3.5"
+                services:
+                  db:
+                    container_name: weatherapp-db
+                    image: nebstephy/weatherapp-db:${BUILD_NUMBER}
+                    environment:
+                      MYSQL_ROOT_PASSWORD: ${WEATHERAPP_MYSQL_ROOT_PASSWORD}
+                    volumes:
+                      - db-data:/var/lib/mysql
+                    networks:   
+                      - weatherapp
+                    restart: always
+
+                  redis:
+                    container_name: weatherapp-redis
+                    image: nebstephy/weatherapp-redis:${BUILD_NUMBER}
+                    networks:
+                      - weatherapp
+                    environment:
+                      REDIS_USER: redis
+                      REDIS_PASSWORD: ${WEATHERAPP_REDIS_PASSWORD}
+                    volumes:
+                      - redis-data:/data
+                    restart: always
+
+                  weather:
+                    container_name: weatherapp-weather
+                    image: nebstephy/weatherapp-weather:${BUILD_NUMBER}
+                    expose:
+                      - 5000
+                    environment:
+                      APIKEY: ${WEATHERAPP_APIKEY}
+                    networks:
+                      - weatherapp
+                    restart: always
+                    depends_on:
+                      - db
+                      - redis  # Weather depends on both db and redis
+
+                  auth:
+                    container_name: weatherapp-auth
+                    image: nebstephy/weatherapp-auth:${BUILD_NUMBER}
+                    environment:
+                      DB_HOST: db
+                      DB_PASSWORD: ${WEATHERAPP_DB_PASSWORD}
+                    expose:
+                      - 8080
+                    networks:
+                      - weatherapp
+                    restart: always
+                    depends_on:
+                      - weather  # Auth depends on the weather service
+
+                  ui:
+                    container_name: weatherapp-ui
+                    image: nebstephy/weatherapp-ui:${BUILD_NUMBER}
+                    environment:
+                      AUTH_HOST: auth
+                      AUTH_PORT: 8080
+                      WEATHER_HOST: weather
+                      WEATHER_PORT: 5000
+                      REDIS_USER: redis
+                      REDIS_PASSWORD: ${WEATHERAPP_REDIS_PASSWORD}
+                    expose:
+                      - 3000
+                    ports:
+                      - 3000:3000
+                    networks:
+                      - weatherapp
+                    restart: always
+                    depends_on:
+                      - auth  # UI depends on Auth
+                networks:
+                  weatherapp:
+
+                volumes:
+                  db-data:
+                  redis-data:
+                ''' > docker-compose.yaml
+                """
             }
         }
     }
+}
+
+        
+
+        stage('Deploy') {
+            agent { 
+                label "Dev"
+            }
+            when{ 
+                expression {
+                    env.GIT_BRANCH == 'origin/develop'
+                }
+            }
+            steps {
+                sh '''
+                    docker-compose down --remove-orphans || true
+                    docker-compose up -d 
+                    docker-compose ps 
+                '''
+            }
+        }
+
+        stage('checking deployment') {
+            agent { 
+                label "Dev"
+            }
+            when{ 
+                expression {
+                    env.GIT_BRANCH == 'origin/develop'
+                }
+            }
+            steps {
+                sh '''
+                    bash weatherapp/check.sh
+                '''
+            }
+        }
+
+        stage('checking website') {
+            agent { 
+                label "Dev"
+            }
+            when{ 
+                expression {
+                    env.GIT_BRANCH == 'origin/develop'
+                }
+            }
+            steps {
+                sh '''
+                    sleep 10
+                    bash weatherapp/check-login.sh
+                '''
+            }
+        }
+
+    }
+
+    // post {
+    //     always {
+    //         script {
+    //             notifyUpgrade(currentBuild.currentResult, "POST")
+    //         }
+    //     }
+    // }
 }
