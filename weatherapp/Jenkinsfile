@@ -382,11 +382,11 @@ pipeline {
 
     }
 
-    // post {
-    //     always {
-    //         script {
-    //             notifyUpgrade(currentBuild.currentResult, "POST")
-    //         }
-    //     }
-    // }
+    post {
+        always {
+            script {
+                notifyUpgrade(currentBuild.currentResult, "POST")
+            }
+        }
+    }
 }
