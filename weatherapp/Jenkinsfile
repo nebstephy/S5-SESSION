@@ -307,9 +307,9 @@ pipeline {
                       REDIS_USER: redis
                       REDIS_PASSWORD: ${WEATHERAPP_REDIS_PASSWORD}
                     expose:
-                      - 3000
+                      - 3001
                     ports:
-                      - 3000:3000
+                      - 3001:3001
                     networks:
                       - weatherapp
                     restart: always
