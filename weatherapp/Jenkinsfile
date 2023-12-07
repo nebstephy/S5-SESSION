@@ -1,3 +1,10 @@
+
+def notifyUpgrade(buildResult, status) {
+    echo "Notifying about upgrade - Build Result: ${buildResult}, Status: ${status}"
+    // Add your upgrade notification logic here
+}
+
+
 pipeline {
     agent {
         label("Dev")
