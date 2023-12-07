@@ -14,7 +14,7 @@ RUN git clone --depth 1 --branch main https://github.com/abohmeed/weatherapp.git
 WORKDIR /go/src/app/weatherapp/auth
 
 # Build the Go application and place the binary in /app
-RUN CGO_ENABLED=0 go build -o /app -v .
+RUN go build -o /go/bin/app -v ./...
 
 # Final stage
 FROM alpine:latest
