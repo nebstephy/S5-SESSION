@@ -1,10 +1,4 @@
 
-def notifyUpgrade(buildResult, status) {
-    echo "Notifying about upgrade - Build Result: ${buildResult}, Status: ${status}"
-    // Add your upgrade notification logic here
-}
-
-
 pipeline {
     agent {
         label("Dev")
@@ -389,11 +383,11 @@ pipeline {
 
     }
 
-    post {
-        always {
-            script {
-                notifyUpgrade(currentBuild.currentResult, "POST")
-            }
-        }
-    }
+    // post {
+    //     always {
+    //         script {
+    //             notifyUpgrade(currentBuild.currentResult, "POST")
+    //         }
+    //     }
+    // }
 }
