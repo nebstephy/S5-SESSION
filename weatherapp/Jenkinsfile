@@ -229,7 +229,7 @@ pipeline {
         //     }
         // }
 
-       stages {
+    
         stage('Generate-compose') {
             agent {
                 label "Dev"
@@ -334,7 +334,7 @@ EOF
             }
         }
     }
-}
+
 
         
 
