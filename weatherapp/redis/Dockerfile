@@ -1,1 +1,1 @@
-FROM redis 
+FROM redis:6.0.16-alpine
