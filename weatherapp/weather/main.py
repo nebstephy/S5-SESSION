@@ -3,7 +3,7 @@ from flask_cors import CORS
 import requests
 import os
 
-app = Flask(__name__)
+app = Flask(_name_)
 CORS(app)
 
 @app.route("/")
@@ -22,5 +22,5 @@ def hello(city):
     return jsonify(response.text)
 
 
-if __name__ == '__main__':
+if _name_ == '_main_':
     app.run(host="0.0.0.0")
