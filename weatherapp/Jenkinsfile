@@ -355,21 +355,21 @@ EOF
                 '''
             }
         }
-        stage('entry') {
-            agent { 
-                label "Dev"
-            }
-            when{ 
-                expression {
-                    env.GIT_BRANCH == 'origin/develop'
-                }
-            }
-            steps {
-                sh '''
-                    bash weatherapp/entry.sh
-                '''
-            }
-        }
+        // stage('entry') {
+        //     agent { 
+        //         label "Dev"
+        //     }
+        //     when{ 
+        //         expression {
+        //             env.GIT_BRANCH == 'origin/develop'
+        //         }
+        //     }
+        //     steps {
+        //         sh '''
+        //             bash weatherapp/entry.sh
+        //         '''
+        //     }
+        // }
 
         stage('checking deployment') {
             agent { 
