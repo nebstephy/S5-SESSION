@@ -2,9 +2,7 @@ pipeline {
     agent {
         label("Dev")
     }
-    environment {
-        DOCKERHUB_CREDENTIALS = credentials('DockerHub')
-    }
+    
     
     options {
         buildDiscarder(logRotator(numToKeepStr: '5'))
@@ -87,17 +85,17 @@ pipeline {
         //     }
         // }
 
-        stage('Login to Docker') {
+        stage('Login to Docker Hub') {  
             steps {
                 script {
-                    // Docker login
-                    withCredentials([usernamePassword(credentialsId: 'DockerHub', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                        sh "echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin"
-                    }
+                    // Define your Docker Hub username and access token
+                    def dockerHubUser = 'nebstephy'
+                    def dockerHubAccessToken = 'dckr_pat_uplEewOepzHVMf6rqwrmdixZoj0'
 
+                    // Docker login command with access token
+                    sh "echo ${dockerHubAccessToken} | docker login -u ${dockerHubUser} --password-stdin"
                 }
             }
-
         }
         
         stage('Build auth') {
@@ -295,7 +293,7 @@ services:
       DB_HOST: db
       DB_PASSWORD: ${WEATHERAPP_DB_PASSWORD}
     expose:
-      - 8084
+      - 8080
     networks:
       - weatherapp
     restart: always
@@ -307,7 +305,7 @@ services:
     image: nebstephy/weatherapp-ui:${BUILD_NUMBER}
     environment:
       AUTH_HOST: auth
-      AUTH_PORT: 8084
+      AUTH_PORT: 8080
       WEATHER_HOST: weather
       WEATHER_PORT: 5000
       REDIS_USER: redis
